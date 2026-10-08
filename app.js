@@ -672,3 +672,167 @@ if (items.length === 0 && warehouses.length === 0) {
 
 /* ================= تشغيل ================= */
 renderAll();
+
+/* ================= القفل الرقمي (6 أرقام) ================= */
+const PIN_KEY = "inv_pin_hash";
+const PIN_SALT = "inv-pin-salt-v1";
+let lockMode = "create";
+let lockStep = 0;
+let pinBuf = "";
+let pendingNew = null;
+let lockBusy = false;
+
+function hashPin(pin) {
+  const data = PIN_SALT + pin;
+  if (window.crypto && crypto.subtle && crypto.subtle.digest) {
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(data)).then(buf =>
+      Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join(""));
+  }
+  let h1 = 0x811c9dc5, h2 = 0x01000193;
+  for (let i = 0; i < data.length; i++) {
+    h1 = ((h1 ^ data.charCodeAt(i)) * 16777619) >>> 0;
+    h2 = (h2 + data.charCodeAt(i) * (i + 7)) >>> 0;
+  }
+  return Promise.resolve("f" + h1.toString(16).padStart(8, "0") + h2.toString(16).padStart(8, "0"));
+}
+
+function lockHint() {
+  if (lockMode === "create") return lockStep === 0
+    ? "اختر رقماً سرياً من 6 أرقام لحماية بياناتك"
+    : "أعد إدخال الرقم السري للتأكيد";
+  if (lockMode === "change") return [
+    "أدخل رقمك السري الحالي للمتابعة",
+    "اختر رقماً سرياً جديداً من 6 أرقام",
+    "أعد إدخال الرقم الجديد للتأكيد"
+  ][lockStep];
+  return "أدخل الرقم السري للدخول إلى البرنامج";
+}
+
+function lockTitle() {
+  if (lockMode === "create") return lockStep === 0 ? "إنشاء رقم سري 🔐" : "تأكيد الرقم السري";
+  if (lockMode === "change") return ["تغيير الرقم السري", "رقماً سرياً جديداً", "تأكيد الرقم الجديد"][lockStep];
+  return "أهلاً بك 👋";
+}
+
+function renderLock(msg, cls) {
+  $("#lockTitle").textContent = lockTitle();
+  $("#lockMsg").textContent = msg || lockHint();
+  $("#lockMsg").className = "lock-msg" + (cls ? " " + cls : "");
+  $("#pinDots").innerHTML = Array.from({ length: 6 }, (_, i) =>
+    `<span class="${i < pinBuf.length ? "on" : ""}"></span>`).join("");
+  $("#forgotPin").classList.toggle("hidden", lockMode !== "unlock");
+}
+
+function showLock(mode) {
+  lockMode = mode;
+  lockStep = 0;
+  pinBuf = "";
+  pendingNew = null;
+  $("#lockScreen").classList.remove("hidden");
+  renderLock();
+}
+
+function hideLock() {
+  $("#lockScreen").classList.add("hidden");
+  pinBuf = "";
+}
+
+function lockFail(msg) {
+  pinBuf = "";
+  renderLock(msg, "err");
+  const card = $("#lockCard");
+  card.classList.remove("shake");
+  void card.offsetWidth;
+  card.classList.add("shake");
+}
+
+function lockKey(k) {
+  if (lockBusy) return;
+  if (k === "del") { pinBuf = pinBuf.slice(0, -1); renderLock(); return; }
+  if (k === "clr") { pinBuf = ""; renderLock(); return; }
+  if (!/^[0-9]$/.test(k) || pinBuf.length >= 6) return;
+  pinBuf += k;
+  renderLock();
+  if (pinBuf.length === 6) setTimeout(lockSubmit, 180);
+}
+
+async function lockSubmit() {
+  if (lockBusy || pinBuf.length !== 6) return;
+  lockBusy = true;
+  const buf = pinBuf;
+  try {
+    if (lockMode === "unlock") {
+      const h = await hashPin(buf);
+      if (h === localStorage.getItem(PIN_KEY)) {
+        renderLock("تم فتح القفل ✓", "ok");
+        setTimeout(hideLock, 250);
+      } else {
+        lockFail("الرقم السري غير صحيح ❌");
+      }
+    } else if (lockMode === "create") {
+      if (lockStep === 0) {
+        pendingNew = buf;
+        lockStep = 1;
+        pinBuf = "";
+        renderLock("أعد إدخال الرقم للتأكيد", "ok");
+      } else if (buf === pendingNew) {
+        localStorage.setItem(PIN_KEY, await hashPin(buf));
+        renderLock("تم الحفظ ✓", "ok");
+        setTimeout(hideLock, 250);
+      } else {
+        pendingNew = null;
+        lockStep = 0;
+        lockFail("الرقمان غير متطابينين ⚠️");
+      }
+    } else {
+      if (lockStep === 0) {
+        const h = await hashPin(buf);
+        if (h === localStorage.getItem(PIN_KEY)) {
+          lockStep = 1;
+          pinBuf = "";
+          renderLock("اختر رقماً سرياً جديداً", "ok");
+        } else {
+          lockFail("الرقم السري الحالي غير صحيح ❌");
+        }
+      } else if (lockStep === 1) {
+        pendingNew = buf;
+        lockStep = 2;
+        pinBuf = "";
+        renderLock("أعد إدخال الرقم الجديد للتأكيد", "ok");
+      } else if (buf === pendingNew) {
+        localStorage.setItem(PIN_KEY, await hashPin(buf));
+        renderLock("تم تغيير الرقم السري ✓", "ok");
+        setTimeout(hideLock, 350);
+      } else {
+        pendingNew = null;
+        lockStep = 1;
+        lockFail("الرقمان غير متطابينين ⚠️");
+      }
+    }
+  } finally {
+    lockBusy = false;
+  }
+}
+
+$("#keypad").addEventListener("click", (e) => {
+  const k = e.target.closest("[data-k]")?.dataset.k;
+  if (k) lockKey(k);
+});
+
+document.addEventListener("keydown", (e) => {
+  if ($("#lockScreen").classList.contains("hidden")) return;
+  if (/^[0-9]$/.test(e.key)) lockKey(e.key);
+  else if (e.key === "Backspace") { e.preventDefault(); lockKey("del"); }
+  else if (e.key === "Enter") lockSubmit();
+});
+
+$("#forgotPin").addEventListener("click", () => {
+  if (!confirm("سيتم إزالة الرقم السري وإنشاء رقم جديد.\n(ستبقى بيانات المخزون محفوظة)\n\nهل تريد المتابعة؟")) return;
+  localStorage.removeItem(PIN_KEY);
+  showLock("create");
+});
+
+$("#changePinBtn").addEventListener("click", () => showLock("change"));
+
+if (localStorage.getItem(PIN_KEY)) showLock("unlock");
+else showLock("create");

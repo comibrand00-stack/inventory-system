@@ -51,6 +51,7 @@
       <p class="page-sub">نظرة عامة على المخزون والمستودعات</p>
     </div>
     <div class="top-actions">
+      <button id="changePinBtn" class="icon-btn" title="تغيير الرقم السري">🔑</button>
       <button id="alertBtn" class="icon-btn" title="تنبيهات نقص المخزون">
         🔔<span id="alertCount" class="badge hidden">0</span>
       </button>
@@ -193,6 +194,31 @@
   </main>
 
   <footer class="footer">نظام إدارة المخزون — الإصدار 2.0 · البيانات محفوظة محلياً في المتصفح (localStorage)</footer>
+</div>
+
+<!-- شاشة القفل الرقمي -->
+<div id="lockScreen" class="lock-screen">
+  <div class="lock-card" id="lockCard">
+    <div class="lock-logo">🔐</div>
+    <h2 id="lockTitle">أنشئ رقماً سرياً من 6 أرقام</h2>
+    <p id="lockMsg" class="lock-msg">&nbsp;</p>
+    <div class="pin-dots" id="pinDots"></div>
+    <div class="keypad" id="keypad">
+      <button type="button" class="key" data-k="1">1</button>
+      <button type="button" class="key" data-k="2">2</button>
+      <button type="button" class="key" data-k="3">3</button>
+      <button type="button" class="key" data-k="4">4</button>
+      <button type="button" class="key" data-k="5">5</button>
+      <button type="button" class="key" data-k="6">6</button>
+      <button type="button" class="key" data-k="7">7</button>
+      <button type="button" class="key" data-k="8">8</button>
+      <button type="button" class="key" data-k="9">9</button>
+      <button type="button" class="key fn" data-k="clr" title="مسح">C</button>
+      <button type="button" class="key" data-k="0">0</button>
+      <button type="button" class="key fn" data-k="del" title="حذف">⌫</button>
+    </div>
+    <button type="button" id="forgotPin" class="lock-link">نسيت الرقم السري؟</button>
+  </div>
 </div>
 
 <!-- نافذة: صنف -->
