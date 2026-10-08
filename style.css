@@ -297,6 +297,11 @@ select { cursor: pointer; }
 }
 .btn-danger { background: #fee2e2; color: #b91c1c; }
 .btn-danger:hover { background: #fecaca; filter: none; }
+.btn-pdf {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  box-shadow: 0 8px 18px -10px rgba(220, 38, 38, .9);
+}
 .btn-ghost { background: #fff; border: 1px solid var(--line); color: var(--ink-2); }
 .btn-ghost:hover { background: #f8fafc; filter: none; }
 .btn-soft { background: #eff6ff; color: var(--primary); border: 1px solid #dbeafe; }
@@ -535,6 +540,80 @@ dialog::backdrop { background: rgba(2, 6, 23, .55); backdrop-filter: blur(3px); 
   40% { transform: translateX(9px); }
   60% { transform: translateX(-6px); }
   80% { transform: translateX(4px); }
+}
+
+/* ================= التصدير (طباعة / PDF) ================= */
+.print-head { display: none; }
+
+.export-area { display: none; }
+
+.export-area.export-live {
+  display: block;
+  position: static;
+  width: min(820px, 100%);
+  background: #fff;
+  padding: 26px;
+  color: var(--ink);
+}
+body > .export-area.export-live {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  z-index: 2147483647;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .35);
+}
+.html2pdf__container .export-area.export-live {
+  position: static !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+}
+.export-area .exp-head {
+  border-bottom: 3px solid var(--primary);
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+}
+.export-area .exp-head h1 { font-size: 21px; font-weight: 800; }
+.export-area .exp-head p { font-size: 13px; color: #555; margin-top: 5px; }
+.export-area .card {
+  box-shadow: none;
+  border: 1px solid var(--line);
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.export-area .table thead th { position: static; background: #f1f5f9; }
+
+@media print {
+  @page { size: A4; margin: 12mm; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: #fff; display: block; }
+  .sidebar, .topbar, .footer, dialog, .lock-screen,
+  .toolbar, .export-area, .badge { display: none !important; }
+  main { padding: 0; max-width: none; }
+  .card {
+    box-shadow: none;
+    border: 1px solid #d4d4d8;
+    margin-bottom: 12px;
+    break-inside: avoid;
+  }
+  body.printing .print-head {
+    display: block;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--primary);
+  }
+  body.printing .print-head h2 { font-size: 19px; font-weight: 800; }
+  body.printing .print-head p { font-size: 12px; color: #555; margin-top: 3px; }
+  body.printing .panel { display: none !important; }
+  body.printing .panel.print-target { display: block !important; }
+  #itemsTable tr > :last-child,
+  #movementsTable tr > :last-child,
+  #whTable tr > :last-child { display: none; }
+  .table { font-size: 11px; }
+  .table th, .table td { padding: 5px 7px; }
+  .table thead th { position: static; }
+  .table tbody tr:hover { background: transparent; }
 }
 
 /* ================= التجاوب ================= */

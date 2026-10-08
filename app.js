@@ -480,7 +480,7 @@ function renderMovements() {
       <td>${route}</td>
       <td>${esc(m.reason)}</td>
       <td>${esc(m.user)}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteMovement('${m.id}')">حذف</button></td>
+      <td class="actions"><button class="btn btn-danger btn-sm" onclick="deleteMovement('${m.id}')">حذف</button></td>
     </tr>`;
   }).join("");
 
@@ -636,6 +636,83 @@ $("#exportBtn").addEventListener("click", () => {
   a.click();
   URL.revokeObjectURL(a.href);
 });
+
+/* ================= طباعة و PDF ================= */
+let pageStyleEl = null;
+
+function printPanel(panelId, title, landscape = false) {
+  $("#printTitle").textContent = title;
+  $("#printDate").textContent = "تاريخ التصدير: " + fmtDate(new Date().toISOString());
+  $$(".panel").forEach(p => p.classList.remove("print-target"));
+  document.getElementById(panelId).classList.add("print-target");
+  document.body.classList.add("printing");
+
+  if (pageStyleEl) pageStyleEl.remove();
+  pageStyleEl = null;
+  if (landscape) {
+    pageStyleEl = document.createElement("style");
+    pageStyleEl.textContent = "@page { size: A4 landscape; margin: 10mm; }";
+    document.head.appendChild(pageStyleEl);
+  }
+  window.print();
+}
+
+window.addEventListener("afterprint", () => {
+  document.body.classList.remove("printing");
+  $$(".panel").forEach(p => p.classList.remove("print-target"));
+  if (pageStyleEl) { pageStyleEl.remove(); pageStyleEl = null; }
+});
+
+function buildExportArea(panelId, title) {
+  const panel = document.getElementById(panelId);
+  const area = $("#exportArea");
+  area.innerHTML =
+    `<div class="exp-head"><h1>${esc(title)}</h1><p>تاريخ التصدير: ${fmtDate(new Date().toISOString())}</p></div>` +
+    panel.innerHTML;
+
+  area.querySelectorAll(".toolbar").forEach(el => el.remove());
+  area.querySelectorAll(".empty").forEach(el => el.remove());
+  area.querySelectorAll(".grid-2, .grid-3").forEach(el => { el.style.display = "block"; });
+  area.querySelectorAll("table").forEach(tbl => {
+    const hasActions = !!tbl.querySelector("td.actions");
+    tbl.querySelectorAll("td.actions").forEach(td => td.remove());
+    const headerRow = tbl.tHead?.rows[0];
+    if (hasActions && headerRow && headerRow.cells.length > 1) headerRow.lastElementChild.remove();
+  });
+  return area;
+}
+
+function exportPDF(panelId, title, filename, orientation = "portrait") {
+  const area = buildExportArea(panelId, title);
+  area.classList.add("export-live");
+  const name = `${filename}_${new Date().toISOString().slice(0, 10)}.pdf`;
+
+  const done = () => {
+    area.classList.remove("export-live");
+    area.innerHTML = "";
+  };
+
+  if (typeof html2pdf !== "undefined") {
+    const task = html2pdf().set({
+      margin: [10, 8],
+      filename: name,
+      image: { type: "jpeg", quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", windowWidth: 1200 },
+      jsPDF: { unit: "mm", format: "a4", orientation }
+    }).from(area).save();
+    if (task && typeof task.then === "function") task.then(done, done);
+    else setTimeout(done, 2000);
+  } else {
+    alert("مكتبة PDF غير متاحة (أنت غير متصل بالإنترنت).\nسيتم فتح نافذة الطباعة — اختر \"حفظ كـ PDF\" من قائمة الطابعات.");
+    done();
+    printPanel(panelId, title);
+  }
+}
+
+$("#printMovBtn").addEventListener("click", () => printPanel("movements", "قائمة حركات المخزون", true));
+$("#pdfMovBtn").addEventListener("click", () => exportPDF("movements", "قائمة حركات المخزون", "حركات_المخزون", "landscape"));
+$("#printRepBtn").addEventListener("click", () => printPanel("reports", "تقارير المخزون"));
+$("#pdfRepBtn").addEventListener("click", () => exportPDF("reports", "تقارير المخزون", "تقارير_المخزون", "portrait"));
 
 /* ================= إغلاق النوافذ ================= */
 $$("[data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
