@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام إدارة المخزون</title>
+<meta name="theme-color" content="#0b1739">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="المخزون">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">
+    <span class="logo">📦</span>
+    <div class="brand-txt">
+      <strong>نظام المخزون</strong>
+      <small>شركة المثال التجارية</small>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <span class="nav-title">القائمة الرئيسية</span>
+    <button class="tab active" data-tab="dashboard" data-title="لوحة التحكم"><span class="nav-ic">📊</span> لوحة التحكم</button>
+    <button class="tab" data-tab="items" data-title="الأصناف"><span class="nav-ic">📦</span> الأصناف</button>
+    <button class="tab" data-tab="movements" data-title="حركات المخزون"><span class="nav-ic">🔁</span> الحركات</button>
+    <button class="tab" data-tab="warehouses" data-title="المستودعات"><span class="nav-ic">🏬</span> المستودعات</button>
+    <button class="tab" data-tab="reports" data-title="التقارير والإحصائيات"><span class="nav-ic">📈</span> التقارير</button>
+  </nav>
+
+  <div class="sidebar-foot">
+    <span class="dot-online"></span> يعمل بدون إنترنت
+    <small>البيانات محفوظة محلياً في المتصفح</small>
+  </div>
+</aside>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="page-head">
+      <h2 id="pageTitle">لوحة التحكم</h2>
+      <p class="page-sub">نظرة عامة على المخزون والمستودعات</p>
+    </div>
+    <div class="top-actions">
+      <button id="alertBtn" class="icon-btn" title="تنبيهات نقص المخزون">
+        🔔<span id="alertCount" class="badge hidden">0</span>
+      </button>
+      <button id="exportBtn" class="btn btn-soft">⬇ تصدير CSV</button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- لوحة التحكم -->
+    <section id="dashboard" class="panel active">
+      <div class="stats" id="statsCards"></div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head">
+            <h3>⚠️ تنبيهات نقص المخزون</h3>
+          </div>
+          <div id="lowStockList" class="list"></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h3>🕓 آخر الحركات</h3>
+          </div>
+          <div id="recentMovements" class="list"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>🏬 المخزون حسب المستودع</h3>
+        </div>
+        <div id="warehouseSummary" class="list"></div>
+      </div>
+    </section>
+
+    <!-- الأصناف -->
+    <section id="items" class="panel">
+      <div class="toolbar">
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="search" id="itemSearch" placeholder="بحث عن صنف بالاسم أو الرمز...">
+        </div>
+        <select id="whFilter" title="تصفية حسب المستودع"></select>
+        <div class="spacer"></div>
+        <button class="btn btn-primary" id="addItemBtn">+ إضافة صنف</button>
+      </div>
+
+      <div class="card">
+        <table class="table" id="itemsTable">
+          <thead>
+            <tr>
+              <th>الرمز</th><th>الصنف</th><th>الكمية</th><th>التوزيع بين المستودعات</th><th>الحد الأدنى</th><th>الوحدة</th><th>سعر الوحدة</th><th>القيمة</th><th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <p id="itemsEmpty" class="empty hidden">لا توجد أصناف مطابقة.</p>
+      </div>
+    </section>
+
+    <!-- الحركات -->
+    <section id="movements" class="panel">
+      <div class="toolbar">
+        <button class="btn btn-success" id="stockInBtn">⬇ إدخال مخزون</button>
+        <button class="btn btn-warning" id="stockOutBtn">⬆ صرف مخزون</button>
+        <button class="btn btn-primary" id="transferBtn">🔁 تحويل بين المستودعات</button>
+        <div class="spacer"></div>
+        <select id="movementFilter">
+          <option value="">كل الحركات</option>
+          <option value="in">إدخال فقط</option>
+          <option value="out">صرف فقط</option>
+          <option value="transfer">تحويل فقط</option>
+        </select>
+        <select id="movementWhFilter" title="تصفية حسب المستودع"></select>
+        <input type="date" id="dateFrom" title="من تاريخ">
+        <input type="date" id="dateTo" title="إلى تاريخ">
+      </div>
+
+      <div class="card">
+        <table class="table" id="movementsTable">
+          <thead>
+            <tr><th>التاريخ</th><th>النوع</th><th>الصنف</th><th>الكمية</th><th>الوحدة</th><th>من / إلى</th><th>السبب / الجهة</th><th>المستخدم</th><th></th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <p id="movementsEmpty" class="empty hidden">لا توجد حركات مطابقة.</p>
+      </div>
+    </section>
+
+    <!-- المستودعات -->
+    <section id="warehouses" class="panel">
+      <div class="toolbar">
+        <div class="spacer"></div>
+        <button class="btn btn-primary" id="addWhBtn">+ إضافة مستودع</button>
+      </div>
+
+      <div class="card">
+        <table class="table" id="whTable">
+          <thead>
+            <tr><th>المستودع</th><th>الموقع</th><th>عدد الأصناف</th><th>إجمالي الكمية</th><th>القيمة</th><th>إجراءات</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <p id="whEmpty" class="empty hidden">لا توجد مستودعات.</p>
+      </div>
+    </section>
+
+    <!-- التقارير -->
+    <section id="reports" class="panel">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><h3>💰 قيمة المخزون حسب المستودع</h3></div>
+          <div id="warehouseChart" class="chart"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>📉 حركة المخزون آخر 7 أيام</h3></div>
+          <div id="weekChart" class="chart"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>🔄 الإدخال مقابل الصرف — حسب المستودع</h3></div>
+          <div id="whActivityChart" class="chart"></div>
+        </div>
+        <div class="card card-highlight">
+          <div class="card-head"><h3>💡 ملخص تنبيهي</h3></div>
+          <div id="reportNotes" class="list"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>⚠️ تقرير الأصناف تحت الحد الأدنى</h3></div>
+        <table class="table" id="lowStockTable">
+          <thead><tr><th>الرمز</th><th>الصنف</th><th>الكمية الحالية</th><th>الحد الأدنى</th><th>العجز</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <p id="lowStockEmpty" class="empty hidden">لا توجد أصناف تحت الحد الأدنى 👍</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">نظام إدارة المخزون — الإصدار 2.0 · البيانات محفوظة محلياً في المتصفح (localStorage)</footer>
+</div>
+
+<!-- نافذة: صنف -->
+<dialog id="itemDialog">
+  <form method="dialog" id="itemForm" class="form">
+    <h2 id="itemDialogTitle">إضافة صنف</h2>
+    <input type="hidden" id="itemId">
+    <div class="form-grid">
+      <label>رمز الصنف (يُولَّد تلقائياً)<input id="itemCode" required readonly placeholder="تلقائي"></label>
+      <label>اسم الصنف<input id="itemName" required placeholder="اسم المنتج"></label>
+      <label>الوحدة<input id="itemUnit" required value="قطعة"></label>
+      <label>الحد الأدنى (تنبيه)<input id="itemMin" type="number" min="0" step="1" required value="5"></label>
+      <label>سعر الوحدة<input id="itemPrice" type="number" min="0" step="0.01" required value="0"></label>
+      <div id="openingRow" class="full-row">
+        <label>المستودع (رصيد افتتاحي)<select id="itemWh"></select></label>
+        <label>الكمية الافتتاحية<input id="itemQty" type="number" min="0" step="1" required value="0"></label>
+      </div>
+    </div>
+    <p id="itemHint" class="hint hidden">لتعديل الكميات استخدم أزرار إدخال/صرف/تحويل من جدول الأصناف.</p>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-ghost" data-close>إلغاء</button>
+      <button type="submit" class="btn btn-primary">حفظ</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- نافذة: حركة -->
+<dialog id="movementDialog">
+  <form method="dialog" id="movementForm" class="form">
+    <h2 id="movementTitle">إدخال مخزون</h2>
+    <input type="hidden" id="movementType" value="in">
+    <div class="form-grid">
+      <label>الصنف<select id="movementItem" required></select></label>
+      <label>الكمية<input id="movementQty" type="number" min="1" step="1" required value="1"></label>
+      <label id="fromField">من مستودع<select id="movementFrom"></select></label>
+      <label id="toField">إلى مستودع<select id="movementTo"></select></label>
+      <label>السبب / الجهة<input id="movementReason" required placeholder="فاتورة شراء / أمر صرف"></label>
+      <label>المستخدم<input id="movementUser" placeholder="اسم المستخدم" value="المدير"></label>
+    </div>
+    <p id="movementHint" class="hint"></p>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-ghost" data-close>إلغاء</button>
+      <button type="submit" class="btn btn-primary">تسجيل</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- نافذة: مستودع -->
+<dialog id="whDialog">
+  <form method="dialog" id="whForm" class="form">
+    <h2 id="whDialogTitle">إضافة مستودع</h2>
+    <input type="hidden" id="whId">
+    <div class="form-grid">
+      <label>اسم المستودع<input id="whName" required placeholder="المستودع الرئيسي"></label>
+      <label>الموقع<input id="whLocation" placeholder="المدينة / الفرع"></label>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-ghost" data-close>إلغاء</button>
+      <button type="submit" class="btn btn-primary">حفظ</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="app.js"></script>
+<script>
+  if ("serviceWorker" in navigator &&
+      (location.protocol === "https:" || location.protocol === "http:")) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
