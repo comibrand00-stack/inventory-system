@@ -32,7 +32,10 @@ const IC = {
   in: svgIc(`<path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/>`),
   out: svgIc(`<path d="M12 7v14"/><path d="m17 12-5-5-5 5"/><path d="M5 3h14"/>`),
   transfer: svgIc(`<path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>`),
-  del: svgIc(`<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/>`)
+  del: svgIc(`<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/>`),
+  report: svgIc(`<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>`),
+  box: svgIc(`<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>`),
+  money: svgIc(`<rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>`)
 };
 
 const fmtNum = (n) => Number(n).toLocaleString("ar-EG-u-nu-latn");
@@ -222,6 +225,49 @@ function deleteItem(id) {
 }
 
 function editItem(id) { const it = findItem(id); if (it) openItemDialog(it); }
+
+function openItemReport(id) {
+  const i = findItem(id);
+  if (!i) return;
+  const ms = movements.filter(m => m.itemId === id)
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const totalIn = ms.filter(m => m.type === "in").reduce((s, m) => s + m.qty, 0);
+  const totalOut = ms.filter(m => m.type === "out").reduce((s, m) => s + m.qty, 0);
+  const transfers = ms.filter(m => m.type === "transfer").length;
+  const adjusts = ms.filter(m => m.type === "adjust").length;
+
+  $("#itemReportTitle").textContent = `تقرير حركة الصنف: ${i.name}`;
+  $("#itemReportSub").textContent =
+    `الرمز: ${i.code} · الرصيد الحالي: ${fmtNum(totalQty(i))} ${i.unit} · عدد الحركات: ${fmtNum(ms.length)}`;
+
+  $("#itemReportStats").innerHTML = `
+    <div class="rep-stat in"><span>${IC.in} إجمالي الإدخال</span><b>${fmtNum(totalIn)} ${esc(i.unit)}</b></div>
+    <div class="rep-stat out"><span>${IC.out} إجمالي الصرف</span><b>${fmtNum(totalOut)} ${esc(i.unit)}</b></div>
+    <div class="rep-stat"><span>${IC.transfer} التحويلات</span><b>${fmtNum(transfers)}</b></div>
+    <div class="rep-stat"><span>${IC.report} التسويات</span><b>${fmtNum(adjusts)}</b></div>`;
+
+  $("#itemReportTable").tBodies[0].innerHTML = ms.map(m => {
+    let route = "—";
+    if (m.type === "in") route = `إلى: <b>${esc(whName(m.to))}</b>`;
+    else if (m.type === "out") route = `من: <b>${esc(whName(m.from))}</b>`;
+    else if (m.type === "transfer") route = `${esc(whName(m.from))} ← ${esc(whName(m.to))}`;
+    else if (m.from) route = `في: <b>${esc(whName(m.from))}</b>`;
+    const sign = m.type === "out" ? "−" : m.type === "in" ? "+" : "";
+    return `
+    <tr>
+      <td>${fmtDate(m.date)}</td>
+      <td><span class="tag ${typeTag(m.type)}">${typeLabel(m.type)}</span></td>
+      <td><b>${sign}${fmtNum(m.qty)} ${esc(i.unit)}</b></td>
+      <td>${route}</td>
+      <td>${esc(m.reason)}</td>
+      <td>${esc(m.user)}</td>
+    </tr>`;
+  }).join("");
+
+  $("#itemReportEmpty").classList.toggle("hidden", ms.length > 0);
+  $("#itemReportDialog").showModal();
+}
 
 /* ================= الحركات ================= */
 function openMovementDialog(type, itemId = null) {
@@ -453,6 +499,7 @@ function renderItems() {
         <button class="btn btn-success btn-sm ibtn" title="إدخال" onclick="openMovementDialog('in','${i.id}')">${IC.in}</button>
         <button class="btn btn-warning btn-sm ibtn" title="صرف" onclick="openMovementDialog('out','${i.id}')">${IC.out}</button>
         <button class="btn btn-ghost btn-sm ibtn" title="تحويل" onclick="openMovementDialog('transfer','${i.id}')">${IC.transfer}</button>
+        <button class="btn btn-ghost btn-sm ibtn" title="تقرير الحركة" onclick="openItemReport('${i.id}')">${IC.report}</button>
         <button class="btn btn-danger btn-sm ibtn" title="حذف" onclick="deleteItem('${i.id}')">${IC.del}</button>
       </td>
     </tr>`;
@@ -512,6 +559,7 @@ function renderWarehouses() {
       <td>${fmtNum(qty)}</td>
       <td>${fmtMoney(value)}</td>
       <td class="actions">
+        <button class="btn btn-ghost btn-sm ibtn" title="تقرير المستودع" onclick="openWhReport('${w.id}')">${IC.report}</button>
         <button class="btn btn-primary btn-sm ibtn" title="تعديل" onclick="openWhDialog(warehouses.find(x=>x.id==='${w.id}'))">${IC.edit}</button>
         <button class="btn btn-danger btn-sm ibtn" title="حذف" onclick="deleteWh('${w.id}')">${IC.del}</button>
       </td>
@@ -520,92 +568,64 @@ function renderWarehouses() {
   $("#whEmpty").classList.toggle("hidden", warehouses.length > 0);
 }
 
-function barChart(entries, valueFmt = fmtNum) {
-  if (!entries.length) return `<p class="empty">لا توجد بيانات.</p>`;
-  const max = Math.max(...entries.map(e => e[1]), 1);
-  return entries.map(([label, val, cls]) => `
-    <div class="bar-row">
-      <span>${esc(label)}</span>
-      <div class="bar-track"><div class="bar-fill ${cls || ""}" style="width:${(val / max) * 100}%"></div></div>
-      <span class="bar-val">${valueFmt(val)}</span>
-    </div>`).join("");
-}
+function openWhReport(id) {
+  const w = warehouses.find(x => x.id === id);
+  if (!w) return;
 
-function renderReports() {
-  const whValues = warehouses.map(w => [
-    w.name,
-    items.reduce((s, i) => s + qtyIn(i, w.id) * i.price, 0)
-  ]).sort((a, b) => b[1] - a[1]);
-  $("#warehouseChart").innerHTML = barChart(whValues, fmtMoney);
+  const rows = items
+    .map(i => ({ i, qty: qtyIn(i, id) }))
+    .filter(r => r.qty > 0)
+    .sort((a, b) => (b.qty * b.i.price) - (a.qty * a.i.price));
 
-  const days = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    const key = d.toDateString();
-    const dayMoves = movements.filter(m => new Date(m.date).toDateString() === key);
-    days.push({
-      label: d.toLocaleDateString("ar-EG-u-nu-latn", { weekday: "short" }),
-      in: dayMoves.filter(m => m.type === "in").reduce((s, m) => s + m.qty, 0),
-      out: dayMoves.filter(m => m.type === "out").reduce((s, m) => s + m.qty, 0)
-    });
-  }
-  const maxWeek = Math.max(...days.flatMap(d => [d.in, d.out]), 1);
-  $("#weekChart").innerHTML = `
-    <div class="week-bars">${days.map(d => `
-      <div class="week-col">
-        <div class="week-pair">
-          <div class="w in" style="height:${(d.in / maxWeek) * 100}%" title="إدخال: ${d.in}"></div>
-          <div class="w out" style="height:${(d.out / maxWeek) * 100}%" title="صرف: ${d.out}"></div>
-        </div>
-        <div class="week-lbl">${esc(d.label)}</div>
-      </div>`).join("")}
-    </div>
-    <div class="legend">
-      <span><span class="dot" style="background:#16a34a"></span>إدخال</span>
-      <span><span class="dot" style="background:#d97706"></span>صرف</span>
-    </div>`;
+  const totalQtyAll = rows.reduce((s, r) => s + r.qty, 0);
+  const totalValue = rows.reduce((s, r) => s + r.qty * r.i.price, 0);
+  const ms = movements
+    .filter(m => m.from === id || m.to === id)
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  const weekAgo = Date.now() - 7 * 86400000;
-  const recentMoves = movements.filter(m => new Date(m.date).getTime() >= weekAgo);
-  const whActivity = warehouses.map(w => {
-    const inQty = recentMoves.filter(m => m.type === "in" && m.to === w.id).reduce((s, m) => s + m.qty, 0);
-    const outQty = recentMoves.filter(m => m.type === "out" && m.from === w.id).reduce((s, m) => s + m.qty, 0);
-    return `${esc(w.name)} — إدخال: ${fmtNum(inQty)} / صرف: ${fmtNum(outQty)}`;
-  });
-  $("#whActivityChart").innerHTML = whActivity.length
-    ? whActivity.map(t => `<div class="bar-row"><span style="grid-column:1/-1">${t}</span></div>`).join("")
-    : `<p class="empty">لا توجد بيانات.</p>`;
+  $("#whReportTitle").textContent = `تقرير مستودع: ${w.name}`;
+  $("#whReportSub").textContent =
+    `${w.location ? "الموقع: " + w.location + " · " : ""}عدد الحركات المسجلة: ${fmtNum(ms.length)}`;
 
-  const low = items.filter(isLow).sort((a, b) => totalQty(a) - a.min - (totalQty(b) - b.min));
-  $("#lowStockTable").tBodies[0].innerHTML = low.map(i => `
+  $("#whReportStats").innerHTML = `
+    <div class="rep-stat"><span>${IC.box} عدد الأصناف</span><b>${fmtNum(rows.length)}</b></div>
+    <div class="rep-stat in"><span>${IC.in} إجمالي الكمية</span><b>${fmtNum(totalQtyAll)}</b></div>
+    <div class="rep-stat"><span>${IC.money} قيمة المخزون</span><b>${fmtMoney(totalValue)}</b></div>
+    <div class="rep-stat out"><span>${IC.transfer} الحركات</span><b>${fmtNum(ms.length)}</b></div>`;
+
+  $("#whReportItems").tBodies[0].innerHTML = rows.map(r => `
     <tr>
-      <td>${esc(i.code)}</td>
-      <td>${esc(i.name)}</td>
-      <td class="qty-low">${fmtNum(totalQty(i))}</td>
-      <td>${fmtNum(i.min)}</td>
-      <td><span class="tag tag-low">${fmtNum(i.min - totalQty(i))} ${esc(i.unit)}</span></td>
+      <td>${esc(r.i.code)}</td>
+      <td><b>${esc(r.i.name)}</b></td>
+      <td class="${r.qty <= r.i.min ? "qty-low" : ""}">${fmtNum(r.qty)} ${r.qty <= r.i.min ? "⚠️" : ""}</td>
+      <td>${esc(r.i.unit)}</td>
+      <td>${fmtNum(r.i.min)}</td>
+      <td>${fmtMoney(r.i.price)}</td>
+      <td><b>${fmtMoney(r.qty * r.i.price)}</b></td>
     </tr>`).join("");
-  $("#lowStockEmpty").classList.toggle("hidden", low.length > 0);
+  $("#whReportItemsEmpty").classList.toggle("hidden", rows.length > 0);
 
-  const weekAgoMs = Date.now() - 7 * 86400000;
-  const weekMoves = movements.filter(m => new Date(m.date).getTime() >= weekAgoMs);
-  const weekIn = weekMoves.filter(m => m.type === "in").reduce((s, m) => s + m.qty, 0);
-  const weekOut = weekMoves.filter(m => m.type === "out").reduce((s, m) => s + m.qty, 0);
-  const whRank = warehouses.map(w => ({
-    name: w.name,
-    value: items.reduce((s, i) => s + qtyIn(i, w.id) * i.price, 0)
-  })).sort((a, b) => b.value - a.value);
+  $("#whReportMoves").tBodies[0].innerHTML = ms.map(m => {
+    let route = "—";
+    if (m.type === "in") route = `إلى: <b>${esc(whName(m.to))}</b>`;
+    else if (m.type === "out") route = `من: <b>${esc(whName(m.from))}</b>`;
+    else if (m.type === "transfer") route = `${esc(whName(m.from))} ← ${esc(whName(m.to))}`;
+    else if (m.from) route = `في: <b>${esc(whName(m.from))}</b>`;
+    const sign = m.type === "out" ? "−" : m.type === "in" ? "+" : "";
+    return `
+    <tr>
+      <td>${fmtDate(m.date)}</td>
+      <td><span class="tag ${typeTag(m.type)}">${typeLabel(m.type)}</span></td>
+      <td>${esc(m.itemName)}</td>
+      <td><b>${sign}${fmtNum(m.qty)}</b></td>
+      <td>${route}</td>
+      <td>${esc(m.reason)}</td>
+      <td>${esc(m.user)}</td>
+    </tr>`;
+  }).join("");
+  $("#whReportMovesEmpty").classList.toggle("hidden", ms.length > 0);
 
-  const notes = [
-    ["💰", `إجمالي قيمة المخزون: <b>${fmtMoney(items.reduce((s, i) => s + totalQty(i) * i.price, 0))}</b>`],
-    ["🏬", whRank.length ? `أعلى مستودع قيمةً: <b>${esc(whRank[0].name)}</b> (${fmtMoney(whRank[0].value)})` : "لا توجد مستودعات"],
-    ["📉", `صافي حركة الأسبوع: إدخال ${fmtNum(weekIn)} / صرف ${fmtNum(weekOut)}${weekOut > weekIn ? " — <b>الصرف أعلى من الإدخال</b>" : ""}`],
-    [low.length ? "⚠️" : "✅", low.length
-      ? `<b>${fmtNum(low.length)}</b> صنف يحتاج إعادة طلب: ${low.slice(0, 3).map(i => esc(i.name)).join("، ")}${low.length > 3 ? " وغيرها" : ""}`
-      : "كل الأصناف فوق الحد الأدنى"]
-  ];
-  $("#reportNotes").innerHTML = notes.map(([ic, txt]) =>
-    `<div class="row"><span>${ic} ${txt}</span></div>`).join("");
+  $("#whReportDialog").showModal();
 }
 
 function renderAll() {
@@ -616,7 +636,6 @@ function renderAll() {
   renderItems();
   renderMovements();
   renderWarehouses();
-  renderReports();
 }
 
 /* ================= التنبيهات ================= */
@@ -723,8 +742,6 @@ function exportPDF(panelId, title, filename, orientation = "portrait") {
 
 $("#printMovBtn").addEventListener("click", () => printPanel("movements", "قائمة حركات المخزون", true));
 $("#pdfMovBtn").addEventListener("click", () => exportPDF("movements", "قائمة حركات المخزون", "حركات_المخزون", "landscape"));
-$("#printRepBtn").addEventListener("click", () => printPanel("reports", "تقارير المخزون"));
-$("#pdfRepBtn").addEventListener("click", () => exportPDF("reports", "تقارير المخزون", "تقارير_المخزون", "portrait"));
 
 /* ================= إغلاق النوافذ ================= */
 $$("[data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));

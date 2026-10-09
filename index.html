@@ -29,11 +29,10 @@
 
   <nav class="nav">
     <span class="nav-title">القائمة الرئيسية</span>
-    <button class="tab active" data-tab="dashboard" data-title="لوحة التحكم"><span class="nav-ic">📊</span> لوحة التحكم</button>
-    <button class="tab" data-tab="items" data-title="الأصناف"><span class="nav-ic">📦</span> الأصناف</button>
-    <button class="tab" data-tab="movements" data-title="حركات المخزون"><span class="nav-ic">🔁</span> الحركات</button>
-    <button class="tab" data-tab="warehouses" data-title="المستودعات"><span class="nav-ic">🏬</span> المستودعات</button>
-    <button class="tab" data-tab="reports" data-title="التقارير والإحصائيات"><span class="nav-ic">📈</span> التقارير</button>
+    <button class="tab active" data-tab="dashboard" data-title="لوحة التحكم"><span class="nav-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></span> لوحة التحكم</button>
+    <button class="tab" data-tab="items" data-title="الأصناف"><span class="nav-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></span> الأصناف</button>
+    <button class="tab" data-tab="movements" data-title="حركات المخزون"><span class="nav-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span> الحركات</button>
+    <button class="tab" data-tab="warehouses" data-title="المستودعات"><span class="nav-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><path d="M6 10h12"/></svg></span> المستودعات</button>
   </nav>
 
   <div class="sidebar-foot">
@@ -50,11 +49,17 @@
       <p class="page-sub">نظرة عامة على المخزون والمستودعات</p>
     </div>
     <div class="top-actions">
-      <button id="changePinBtn" class="icon-btn" title="تغيير الرقم السري">🔑</button>
-      <button id="alertBtn" class="icon-btn" title="تنبيهات نقص المخزون">
-        🔔<span id="alertCount" class="badge hidden">0</span>
+      <button id="changePinBtn" class="icon-btn" title="تغيير الرقم السري" aria-label="تغيير الرقم السري">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
       </button>
-      <button id="exportBtn" class="btn btn-soft">⬇ تصدير CSV</button>
+      <button id="alertBtn" class="icon-btn" title="تنبيهات نقص المخزون" aria-label="تنبيهات نقص المخزون">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span id="alertCount" class="badge hidden">0</span>
+      </button>
+      <button id="exportBtn" class="btn btn-soft">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+        تصدير CSV
+      </button>
     </div>
   </header>
 
@@ -71,7 +76,7 @@
       <div class="grid-2">
         <div class="card">
           <div class="card-head">
-            <h3>⚠️ تنبيهات نقص المخزون</h3>
+            <h3><svg class="ic ic-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> تنبيهات نقص المخزون</h3>
           </div>
           <div id="lowStockList" class="list"></div>
         </div>
@@ -165,42 +170,6 @@
       </div>
     </section>
 
-    <!-- التقارير -->
-    <section id="reports" class="panel">
-      <div class="toolbar">
-        <button class="btn btn-ghost" id="printRepBtn">🖨️ طباعة</button>
-        <button class="btn btn-pdf" id="pdfRepBtn">📄 PDF</button>
-        <div class="spacer"></div>
-      </div>
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-head"><h3>💰 قيمة المخزون حسب المستودع</h3></div>
-          <div id="warehouseChart" class="chart"></div>
-        </div>
-        <div class="card">
-          <div class="card-head"><h3>📉 حركة المخزون آخر 7 أيام</h3></div>
-          <div id="weekChart" class="chart"></div>
-        </div>
-        <div class="card">
-          <div class="card-head"><h3>🔄 الإدخال مقابل الصرف — حسب المستودع</h3></div>
-          <div id="whActivityChart" class="chart"></div>
-        </div>
-        <div class="card card-highlight">
-          <div class="card-head"><h3>💡 ملخص تنبيهي</h3></div>
-          <div id="reportNotes" class="list"></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-head"><h3>⚠️ تقرير الأصناف تحت الحد الأدنى</h3></div>
-        <table class="table" id="lowStockTable">
-          <thead><tr><th>الرمز</th><th>الصنف</th><th>الكمية الحالية</th><th>الحد الأدنى</th><th>العجز</th></tr></thead>
-          <tbody></tbody>
-        </table>
-        <p id="lowStockEmpty" class="empty hidden">لا توجد أصناف تحت الحد الأدنى 👍</p>
-      </div>
-    </section>
-
   </main>
 
   <footer class="footer">نظام إدارة المخزون — الإصدار 2.0 · البيانات محفوظة محلياً في المتصفح (localStorage)</footer>
@@ -208,11 +177,10 @@
 
 <!-- قائمة سفلية للهاتف -->
 <nav class="bottom-nav" aria-label="القائمة السفلية">
-  <button class="tab active" data-tab="dashboard" data-title="لوحة التحكم"><span class="bn-ic">📊</span><span class="bn-lb">الرئيسية</span></button>
-  <button class="tab" data-tab="items" data-title="الأصناف"><span class="bn-ic">📦</span><span class="bn-lb">الأصناف</span></button>
-  <button class="tab" data-tab="movements" data-title="حركات المخزون"><span class="bn-ic">🔁</span><span class="bn-lb">الحركات</span></button>
-  <button class="tab" data-tab="warehouses" data-title="المستودعات"><span class="bn-ic">🏬</span><span class="bn-lb">المستودعات</span></button>
-  <button class="tab" data-tab="reports" data-title="التقارير والإحصائيات"><span class="bn-ic">📈</span><span class="bn-lb">التقارير</span></button>
+  <button class="tab active" data-tab="dashboard" data-title="لوحة التحكم"><span class="bn-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></span><span class="bn-lb">الرئيسية</span></button>
+  <button class="tab" data-tab="items" data-title="الأصناف"><span class="bn-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></span><span class="bn-lb">الأصناف</span></button>
+  <button class="tab" data-tab="movements" data-title="حركات المخزون"><span class="bn-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span><span class="bn-lb">الحركات</span></button>
+  <button class="tab" data-tab="warehouses" data-title="المستودعات"><span class="bn-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><path d="M6 10h12"/></svg></span><span class="bn-lb">المستودعات</span></button>
 </nav>
 
 <!-- شاشة القفل الرقمي -->
@@ -299,6 +267,62 @@
       <button type="submit" class="btn btn-primary">حفظ</button>
     </div>
   </form>
+</dialog>
+
+<!-- نافذة: تقرير حركة صنف -->
+<dialog id="itemReportDialog" class="dlg-lg">
+  <div class="form">
+    <h2 id="itemReportTitle">تقرير حركة الصنف</h2>
+    <p id="itemReportSub" class="hint"></p>
+    <div class="rep-stats" id="itemReportStats"></div>
+    <div class="card">
+      <table class="table" id="itemReportTable">
+        <thead>
+          <tr><th>التاريخ</th><th>النوع</th><th>الكمية</th><th>من / إلى</th><th>السبب</th><th>المستخدم</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="itemReportEmpty" class="empty hidden">لا توجد حركات مسجلة لهذا الصنف بعد.</p>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-ghost" data-close>إغلاق</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- نافذة: تقرير مستودع -->
+<dialog id="whReportDialog" class="dlg-lg">
+  <div class="form">
+    <h2 id="whReportTitle">تقرير مستودع</h2>
+    <p id="whReportSub" class="hint"></p>
+    <div class="rep-stats" id="whReportStats"></div>
+
+    <h3 class="rep-sec">📦 الأصناف في المستودع</h3>
+    <div class="card">
+      <table class="table" id="whReportItems">
+        <thead>
+          <tr><th>الرمز</th><th>الصنف</th><th>الكمية</th><th>الوحدة</th><th>الحد الأدنى</th><th>سعر الوحدة</th><th>القيمة</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="whReportItemsEmpty" class="empty hidden">لا توجد أصناف بكميات في هذا المستودع.</p>
+    </div>
+
+    <h3 class="rep-sec">🕓 حركات المستودع</h3>
+    <div class="card">
+      <table class="table" id="whReportMoves">
+        <thead>
+          <tr><th>التاريخ</th><th>النوع</th><th>الصنف</th><th>الكمية</th><th>المسار</th><th>السبب</th><th>المستخدم</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="whReportMovesEmpty" class="empty hidden">لا توجد حركات مسجلة لهذا المستودع بعد.</p>
+    </div>
+
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-ghost" data-close>إغلاق</button>
+    </div>
+  </div>
 </dialog>
 
 <div id="exportArea" class="export-area"></div>
