@@ -908,6 +908,11 @@ $("#keypad").addEventListener("click", (e) => {
   if (k) lockKey(k);
 });
 
+/* منع التكبير (pinch/double-tap zoom) على شاشة القفل */
+["gesturestart", "gesturechange", "gestureend"].forEach(evt =>
+  $("#lockScreen").addEventListener(evt, e => e.preventDefault())
+);
+
 document.addEventListener("keydown", (e) => {
   if ($("#lockScreen").classList.contains("hidden")) return;
   if (/^[0-9]$/.test(e.key)) lockKey(e.key);
