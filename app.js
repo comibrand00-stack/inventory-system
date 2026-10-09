@@ -437,11 +437,11 @@ function renderItems() {
       <td>${fmtMoney(i.price)}</td>
       <td>${fmtMoney(shownQty * i.price)}</td>
       <td class="actions">
-        <button class="btn btn-primary btn-sm" onclick="editItem('${i.id}')">تعديل</button>
-        <button class="btn btn-success btn-sm" onclick="openMovementDialog('in','${i.id}')">إدخال</button>
-        <button class="btn btn-warning btn-sm" onclick="openMovementDialog('out','${i.id}')">صرف</button>
-        <button class="btn btn-ghost btn-sm" onclick="openMovementDialog('transfer','${i.id}')">تحويل</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteItem('${i.id}')">حذف</button>
+        <button class="btn btn-primary btn-sm" title="تعديل" onclick="editItem('${i.id}')">✏️</button>
+        <button class="btn btn-success btn-sm" title="إدخال" onclick="openMovementDialog('in','${i.id}')">⬇️</button>
+        <button class="btn btn-warning btn-sm" title="صرف" onclick="openMovementDialog('out','${i.id}')">⬆️</button>
+        <button class="btn btn-ghost btn-sm" title="تحويل" onclick="openMovementDialog('transfer','${i.id}')">🔁</button>
+        <button class="btn btn-danger btn-sm" title="حذف" onclick="deleteItem('${i.id}')">🗑️</button>
       </td>
     </tr>`;
   }).join("");
@@ -480,7 +480,7 @@ function renderMovements() {
       <td>${route}</td>
       <td>${esc(m.reason)}</td>
       <td>${esc(m.user)}</td>
-      <td class="actions"><button class="btn btn-danger btn-sm" onclick="deleteMovement('${m.id}')">حذف</button></td>
+      <td class="actions"><button class="btn btn-danger btn-sm" title="حذف" onclick="deleteMovement('${m.id}')">🗑️</button></td>
     </tr>`;
   }).join("");
 
@@ -500,8 +500,8 @@ function renderWarehouses() {
       <td>${fmtNum(qty)}</td>
       <td>${fmtMoney(value)}</td>
       <td class="actions">
-        <button class="btn btn-primary btn-sm" onclick="openWhDialog(warehouses.find(x=>x.id==='${w.id}'))">تعديل</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteWh('${w.id}')">حذف</button>
+        <button class="btn btn-primary btn-sm" title="تعديل" onclick="openWhDialog(warehouses.find(x=>x.id==='${w.id}'))">✏️</button>
+        <button class="btn btn-danger btn-sm" title="حذف" onclick="deleteWh('${w.id}')">🗑️</button>
       </td>
     </tr>`;
   }).join("");
