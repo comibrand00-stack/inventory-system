@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>نظام إدارة المخزون</title>
 <meta name="theme-color" content="#0b1739">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -205,6 +205,15 @@
 
   <footer class="footer">نظام إدارة المخزون — الإصدار 2.0 · البيانات محفوظة محلياً في المتصفح (localStorage)</footer>
 </div>
+
+<!-- قائمة سفلية للهاتف -->
+<nav class="bottom-nav" aria-label="القائمة السفلية">
+  <button class="tab active" data-tab="dashboard" data-title="لوحة التحكم"><span class="bn-ic">📊</span><span class="bn-lb">الرئيسية</span></button>
+  <button class="tab" data-tab="items" data-title="الأصناف"><span class="bn-ic">📦</span><span class="bn-lb">الأصناف</span></button>
+  <button class="tab" data-tab="movements" data-title="حركات المخزون"><span class="bn-ic">🔁</span><span class="bn-lb">الحركات</span></button>
+  <button class="tab" data-tab="warehouses" data-title="المستودعات"><span class="bn-ic">🏬</span><span class="bn-lb">المستودعات</span></button>
+  <button class="tab" data-tab="reports" data-title="التقارير والإحصائيات"><span class="bn-ic">📈</span><span class="bn-lb">التقارير</span></button>
+</nav>
 
 <!-- شاشة القفل الرقمي -->
 <div id="lockScreen" class="lock-screen">

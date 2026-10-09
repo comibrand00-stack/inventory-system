@@ -73,7 +73,7 @@ function migrate() {
 
 /* ================= التبويبات ================= */
 $$(".tab").forEach(tab => tab.addEventListener("click", () => {
-  $$(".tab").forEach(t => t.classList.toggle("active", t === tab));
+  $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tab.dataset.tab));
   $$(".panel").forEach(p => p.classList.toggle("active", p.id === tab.dataset.tab));
   $("#pageTitle").textContent = tab.dataset.title || tab.textContent.trim();
   renderAll();

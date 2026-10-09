@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE = "inventory-pwa-v1";
+const CACHE = "inventory-pwa-v2";
 const ASSETS = [
   "./",
   "./index.html",
