@@ -68,31 +68,49 @@
       <h2 id="printTitle"></h2>
       <p id="printDate"></p>
     </div>
+    <div id="printArea" class="print-area"></div>
 
     <!-- لوحة التحكم -->
     <section id="dashboard" class="panel active">
+      <div class="hero">
+        <div class="hero-main">
+          <span class="hero-eyebrow" id="heroDate"></span>
+          <h2 class="hero-title">لوحة التحكم</h2>
+          <p class="hero-sub" id="heroSub"></p>
+        </div>
+        <div class="hero-side">
+          <div class="hero-kpi">
+            <span class="hero-kpi-lbl">قيمة المخزون</span>
+            <span class="hero-kpi-num" id="heroValue"></span>
+          </div>
+          <div id="heroBadge"></div>
+        </div>
+      </div>
+
       <div class="stats" id="statsCards"></div>
 
-      <div class="grid-2">
+      <div class="dash-grid">
         <div class="card">
           <div class="card-head">
-            <h3><svg class="ic ic-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> تنبيهات نقص المخزون</h3>
+            <h3>المخزون حسب المستودع</h3>
+            <span class="head-sub" id="whChartSub"></span>
           </div>
-          <div id="lowStockList" class="list"></div>
+          <div id="warehouseChart" class="wchart"></div>
         </div>
         <div class="card">
           <div class="card-head">
-            <h3>🕓 آخر الحركات</h3>
+            <h3><svg class="ic ic-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> تنبيهات نقص المخزون</h3>
+            <span class="pill" id="lowCountPill"></span>
           </div>
-          <div id="recentMovements" class="list"></div>
+          <div id="lowStockList" class="list"></div>
         </div>
       </div>
 
       <div class="card">
         <div class="card-head">
-          <h3>🏬 المخزون حسب المستودع</h3>
+          <h3>آخر الحركات</h3>
         </div>
-        <div id="warehouseSummary" class="list"></div>
+        <div id="recentMovements" class="timeline"></div>
       </div>
     </section>
 
@@ -100,7 +118,7 @@
     <section id="items" class="panel">
       <div class="toolbar">
         <div class="search-box">
-          <span>🔍</span>
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           <input type="search" id="itemSearch" placeholder="بحث عن صنف بالاسم أو الرمز...">
         </div>
         <select id="whFilter" title="تصفية حسب المستودع"></select>
@@ -108,11 +126,11 @@
         <button class="btn btn-primary" id="addItemBtn">+ إضافة صنف</button>
       </div>
 
-      <div class="card">
+      <div class="card table-card">
         <table class="table" id="itemsTable">
           <thead>
             <tr>
-              <th>الرمز</th><th>الصنف</th><th>الكمية</th><th>التوزيع بين المستودعات</th><th>الحد الأدنى</th><th>الوحدة</th><th>سعر الوحدة</th><th>القيمة</th><th>إجراءات</th>
+              <th>الصنف</th><th>الكمية</th><th>التوزيع بين المستودعات</th><th>الحد الأدنى</th><th>سعر الوحدة</th><th>القيمة</th><th>إجراءات</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -125,7 +143,6 @@
     <section id="movements" class="panel">
       <div class="toolbar">
         <button class="btn btn-ghost" id="printMovBtn">🖨️ طباعة</button>
-        <button class="btn btn-pdf" id="pdfMovBtn">📄 PDF</button>
         <div class="spacer"></div>
         <select id="movementFilter">
           <option value="">كل الحركات</option>
@@ -138,10 +155,10 @@
         <input type="date" id="dateTo" title="إلى تاريخ">
       </div>
 
-      <div class="card">
+      <div class="card table-card">
         <table class="table" id="movementsTable">
           <thead>
-            <tr><th>التاريخ</th><th>النوع</th><th>الصنف</th><th>الكمية</th><th>الوحدة</th><th>من / إلى</th><th>السبب / الجهة</th><th>المستخدم</th><th></th></tr>
+            <tr><th>النوع</th><th>الصنف</th><th>الكمية</th><th>من / إلى</th><th>السبب / الجهة</th><th>المستخدم</th><th>التاريخ</th><th></th></tr>
           </thead>
           <tbody></tbody>
         </table>
@@ -163,10 +180,10 @@
         <button class="btn btn-primary" id="addWhBtn">+ إضافة مستودع</button>
       </div>
 
-      <div class="card">
+      <div class="card table-card">
         <table class="table" id="whTable">
           <thead>
-            <tr><th>المستودع</th><th>الموقع</th><th>عدد الأصناف</th><th>إجمالي الكمية</th><th>القيمة</th><th>إجراءات</th></tr>
+            <tr><th>المستودع</th><th>عدد الأصناف</th><th>إجمالي الكمية</th><th>القيمة</th><th>إجراءات</th></tr>
           </thead>
           <tbody></tbody>
         </table>
@@ -289,6 +306,7 @@
       <p id="itemReportEmpty" class="empty hidden">لا توجد حركات مسجلة لهذا الصنف بعد.</p>
     </div>
     <div class="dialog-actions">
+      <button type="button" class="btn btn-ghost" id="printItemRepBtn">🖨️ طباعة</button>
       <button type="button" class="btn btn-ghost" data-close>إغلاق</button>
     </div>
   </div>
@@ -324,14 +342,12 @@
     </div>
 
     <div class="dialog-actions">
+      <button type="button" class="btn btn-ghost" id="printWhRepBtn">🖨️ طباعة</button>
       <button type="button" class="btn btn-ghost" data-close>إغلاق</button>
     </div>
   </div>
 </dialog>
 
-<div id="exportArea" class="export-area"></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
 <script src="app.js"></script>
 <script>
   if ("serviceWorker" in navigator &&

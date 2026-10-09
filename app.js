@@ -35,7 +35,12 @@ const IC = {
   del: svgIc(`<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/>`),
   report: svgIc(`<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>`),
   box: svgIc(`<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>`),
-  money: svgIc(`<rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>`)
+  money: svgIc(`<rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>`),
+  warehouse: svgIc(`<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>`),
+  layers: svgIc(`<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>`),
+  alert: svgIc(`<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>`),
+  clock: svgIc(`<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>`),
+  check: svgIc(`<path d="M20 6 9 17l-5-5"/>`)
 };
 
 const fmtNum = (n) => Number(n).toLocaleString("ar-EG-u-nu-latn");
@@ -423,13 +428,25 @@ function renderStats() {
   const today = new Date().toDateString();
   const todayMoves = movements.filter(m => new Date(m.date).toDateString() === today).length;
 
-  $("#statsCards").innerHTML = `
-    <div class="stat"><div class="stat-ic blue">📦</div><div class="stat-body"><div class="lbl">عدد الأصناف</div><div class="num">${fmtNum(totalKinds)}</div></div></div>
-    <div class="stat"><div class="stat-ic violet">🏬</div><div class="stat-body"><div class="lbl">عدد المستودعات</div><div class="num">${fmtNum(warehouses.length)}</div></div></div>
-    <div class="stat"><div class="stat-ic green">📊</div><div class="stat-body"><div class="lbl">إجمالي الكمية</div><div class="num">${fmtNum(totalQtyAll)}</div></div></div>
-    <div class="stat"><div class="stat-ic amber">💰</div><div class="stat-body"><div class="lbl">قيمة المخزون</div><div class="num">${fmtMoney(totalValue)}</div></div></div>
-    <div class="stat ${lowCount ? "warn" : ""}"><div class="stat-ic red">⚠️</div><div class="stat-body"><div class="lbl">تحت الحد الأدنى</div><div class="num">${fmtNum(lowCount)}</div></div></div>
-    <div class="stat"><div class="stat-ic cyan">🕒</div><div class="stat-body"><div class="lbl">حركات اليوم</div><div class="num">${fmtNum(todayMoves)}</div></div></div>`;
+  $("#heroValue").textContent = fmtMoney(totalValue);
+  $("#heroDate").textContent = new Date().toLocaleDateString("ar-EG-u-nu-latn", { weekday: "long", day: "numeric", month: "long" });
+  $("#heroSub").textContent = `${fmtNum(totalKinds)} صنف موزّع على ${fmtNum(warehouses.length)} مستودع`;
+  $("#heroBadge").innerHTML = lowCount
+    ? `<span class="hero-pill danger">${IC.alert}<b>${fmtNum(lowCount)}</b> تحت الحد الأدنى</span>`
+    : `<span class="hero-pill ok">${IC.check} المخزون بحالة جيدة</span>`;
+
+  const cards = [
+    { v: "blue", ic: IC.box, l: "عدد الأصناف", n: fmtNum(totalKinds) },
+    { v: "violet", ic: IC.warehouse, l: "عدد المستودعات", n: fmtNum(warehouses.length) },
+    { v: "green", ic: IC.layers, l: "إجمالي الكمية", n: fmtNum(totalQtyAll) },
+    { v: "red", ic: IC.alert, l: "تحت الحد الأدنى", n: fmtNum(lowCount), warn: lowCount > 0 },
+    { v: "cyan", ic: IC.clock, l: "حركات اليوم", n: fmtNum(todayMoves) }
+  ];
+  $("#statsCards").innerHTML = cards.map(c => `
+    <div class="stat ${c.v}${c.warn ? " warn" : ""}">
+      <div class="stat-ic">${c.ic}</div>
+      <div class="stat-body"><div class="lbl">${c.l}</div><div class="num">${c.n}</div></div>
+    </div>`).join("");
 
   const badge = $("#alertCount");
   badge.textContent = lowCount;
@@ -437,22 +454,44 @@ function renderStats() {
 }
 
 function renderWarehouseSummary() {
-  $("#warehouseSummary").innerHTML = warehouses.map(w => {
-    const kinds = items.filter(i => qtyIn(i, w.id) > 0).length;
+  const rows = warehouses.map(w => {
     const qty = items.reduce((s, i) => s + qtyIn(i, w.id), 0);
     const value = items.reduce((s, i) => s + qtyIn(i, w.id) * i.price, 0);
-    return `<div class="row">
-      <span>🏬 <b>${esc(w.name)}</b> ${w.location ? `— ${esc(w.location)}` : ""}</span>
-      <span>${fmtNum(kinds)} صنف · ${fmtNum(qty)} وحدة · ${fmtMoney(value)}</span>
-    </div>`;
-  }).join("") || `<p class="empty">لا توجد مستودعات.</p>`;
+    const kinds = items.filter(i => qtyIn(i, w.id) > 0).length;
+    return { w, qty, value, kinds };
+  });
+  $("#whChartSub").textContent = `${fmtNum(rows.length)} مستودع`;
+  const max = Math.max(1, ...rows.map(r => r.qty));
+  $("#warehouseChart").innerHTML = rows.length
+    ? rows.map((r, idx) => {
+        const pct = Math.round(r.qty / max * 100);
+        return `<div class="wbar">
+          <div class="wbar-top">
+            <span class="wbar-name">${IC.warehouse} ${esc(r.w.name)}</span>
+            <span class="wbar-val">${fmtNum(r.qty)} وحدة · ${fmtMoney(r.value)}</span>
+          </div>
+          <div class="wbar-track"><div class="wbar-fill v${idx % 5}" style="width:${pct}%"></div></div>
+          <div class="wbar-sub">${fmtNum(r.kinds)} صنف</div>
+        </div>`;
+      }).join("")
+    : `<p class="empty">لا توجد مستودعات.</p>`;
 }
 
 function renderLowStock() {
   const low = items.filter(isLow);
+  const pill = $("#lowCountPill");
+  pill.textContent = low.length ? `${fmtNum(low.length)} صنف` : "لا نواقص";
+  pill.className = "pill " + (low.length ? "pill-danger" : "pill-ok");
   $("#lowStockList").innerHTML = low.length
-    ? low.map(i => `<div class="row alert"><span>${esc(i.name)}</span>
-        <span class="tag tag-low">${fmtNum(totalQty(i))} / ${fmtNum(i.min)} ${esc(i.unit)}</span></div>`).join("")
+    ? low.map(i => {
+        const q = totalQty(i);
+        const pct = i.min > 0 ? Math.min(100, Math.round(q / i.min * 100)) : 100;
+        return `<div class="low-row">
+          <div class="low-info"><span class="low-name">${esc(i.name)}</span>
+            <span class="low-meta">${fmtNum(q)} / ${fmtNum(i.min)} ${esc(i.unit)}</span></div>
+          <div class="low-track"><div class="low-fill" style="width:${pct}%"></div></div>
+        </div>`;
+      }).join("")
     : `<p class="empty">لا توجد نواقص 👍</p>`;
 }
 
@@ -461,10 +500,19 @@ function renderRecent() {
   $("#recentMovements").innerHTML = recent.length
     ? recent.map(m => {
         const unit = findItem(m.itemId)?.unit || "";
-        return `<div class="row">
-        <span>${m.type === "in" ? "⬇" : m.type === "out" ? "⬆" : m.type === "transfer" ? "🔁" : "✏"} ${esc(m.itemName)} — ${fmtNum(m.qty)} ${esc(unit)}</span>
-        <span class="tag ${typeTag(m.type)}">${typeLabel(m.type)}</span>
-      </div>`;
+        const ic = m.type === "in" ? IC.in : m.type === "out" ? IC.out : m.type === "transfer" ? IC.transfer : IC.edit;
+        const sign = m.type === "in" ? "+" : m.type === "out" ? "−" : "";
+        return `<div class="tl-row">
+          <div class="tl-ic ${m.type}">${ic}</div>
+          <div class="tl-body">
+            <span class="tl-title">${esc(m.itemName)}</span>
+            <span class="tl-time">${fmtDate(m.date)}</span>
+          </div>
+          <div class="tl-side">
+            <span class="tl-qty ${m.type}">${sign}${fmtNum(m.qty)} ${esc(unit)}</span>
+            <span class="tag ${typeTag(m.type)}">${typeLabel(m.type)}</span>
+          </div>
+        </div>`;
       }).join("")
     : `<p class="empty">لا توجد حركات بعد.</p>`;
 }
@@ -480,20 +528,27 @@ function renderItems() {
   );
 
   $("#itemsTable").tBodies[0].innerHTML = list.map(i => {
-    const shownQty = wh ? qtyIn(i, wh) : totalQty(i);
+    const showQty = wh ? qtyIn(i, wh) : totalQty(i);
+    const low = isLow(i);
     const dist = warehouses
       .filter(w => qtyIn(i, w.id) > 0)
       .map(w => `<span class="wh-chip">${esc(w.name)}: ${fmtNum(qtyIn(i, w.id))}</span>`).join("") || "—";
     return `
     <tr>
-      <td><b>${esc(i.code)}</b></td>
-      <td>${esc(i.name)}</td>
-      <td class="${isLow(i) ? "qty-low" : ""}">${fmtNum(shownQty)} ${esc(i.unit)} ${isLow(i) ? "⚠️" : ""}</td>
+      <td>
+        <div class="cell-entity">
+          <div class="avatar ${low ? "red" : "blue"}">${IC.box}</div>
+          <div>
+            <div class="entity-main">${esc(i.name)}</div>
+            <div class="entity-sub">${esc(i.code)} · ${esc(i.unit)}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="qty-badge ${low ? "low" : "ok"}">${fmtNum(showQty)}<small>${esc(i.unit)}</small></span></td>
       <td>${dist}</td>
-      <td>${fmtNum(i.min)}</td>
-      <td>${esc(i.unit)}</td>
+      <td class="muted-cell">${fmtNum(i.min)}</td>
       <td>${fmtMoney(i.price)}</td>
-      <td>${fmtMoney(shownQty * i.price)}</td>
+      <td><b>${fmtMoney(showQty * i.price)}</b></td>
       <td class="actions">
         <button class="btn btn-primary btn-sm ibtn" title="تعديل" onclick="editItem('${i.id}')">${IC.edit}</button>
         <button class="btn btn-success btn-sm ibtn" title="إدخال" onclick="openMovementDialog('in','${i.id}')">${IC.in}</button>
@@ -524,6 +579,9 @@ function renderMovements() {
 
   $("#movementsTable").tBodies[0].innerHTML = list.map(m => {
     const unit = findItem(m.itemId)?.unit || "—";
+    const ic = m.type === "in" ? IC.in : m.type === "out" ? IC.out : m.type === "transfer" ? IC.transfer : IC.edit;
+    const badge = m.type === "in" ? "ok" : m.type === "out" ? "amber" : "";
+    const sign = m.type === "in" ? "+" : m.type === "out" ? "−" : "";
     let route = "—";
     if (m.type === "in") route = `إلى: <b>${esc(whName(m.to))}</b>`;
     else if (m.type === "out") route = `من: <b>${esc(whName(m.from))}</b>`;
@@ -531,14 +589,13 @@ function renderMovements() {
     else if (m.from) route = `في: <b>${esc(whName(m.from))}</b>`;
     return `
     <tr>
-      <td>${fmtDate(m.date)}</td>
-      <td><span class="tag ${typeTag(m.type)}">${typeLabel(m.type)}</span></td>
-      <td>${esc(m.itemName)}</td>
-      <td>${fmtNum(m.qty)}</td>
-      <td>${esc(unit)}</td>
+      <td><span class="tag ${typeTag(m.type)}">${ic}${typeLabel(m.type)}</span></td>
+      <td class="entity-main">${esc(m.itemName)}</td>
+      <td><span class="qty-badge ${badge}">${sign}${fmtNum(m.qty)}<small>${esc(unit)}</small></span></td>
       <td>${route}</td>
-      <td>${esc(m.reason)}</td>
-      <td>${esc(m.user)}</td>
+      <td class="muted-cell">${esc(m.reason) || "—"}</td>
+      <td class="muted-cell">${esc(m.user) || "—"}</td>
+      <td class="muted-cell">${fmtDate(m.date)}</td>
       <td class="actions"><button class="btn btn-danger btn-sm ibtn" title="حذف" onclick="deleteMovement('${m.id}')">${IC.del}</button></td>
     </tr>`;
   }).join("");
@@ -553,11 +610,18 @@ function renderWarehouses() {
     const value = items.reduce((s, i) => s + qtyIn(i, w.id) * i.price, 0);
     return `
     <tr>
-      <td><b>${esc(w.name)}</b></td>
-      <td>${esc(w.location) || "—"}</td>
-      <td>${fmtNum(kinds)}</td>
-      <td>${fmtNum(qty)}</td>
-      <td>${fmtMoney(value)}</td>
+      <td>
+        <div class="cell-entity">
+          <div class="avatar violet">${IC.warehouse}</div>
+          <div>
+            <div class="entity-main">${esc(w.name)}</div>
+            <div class="entity-sub">${w.location ? esc(w.location) : "بدون موقع"}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="wh-chip">${fmtNum(kinds)} صنف</span></td>
+      <td><span class="qty-badge">${fmtNum(qty)}</span></td>
+      <td><b>${fmtMoney(value)}</b></td>
       <td class="actions">
         <button class="btn btn-ghost btn-sm ibtn" title="تقرير المستودع" onclick="openWhReport('${w.id}')">${IC.report}</button>
         <button class="btn btn-primary btn-sm ibtn" title="تعديل" onclick="openWhDialog(warehouses.find(x=>x.id==='${w.id}'))">${IC.edit}</button>
@@ -668,16 +732,10 @@ $("#exportBtn").addEventListener("click", () => {
   URL.revokeObjectURL(a.href);
 });
 
-/* ================= طباعة و PDF ================= */
+/* ================= طباعة ================= */
 let pageStyleEl = null;
 
-function printPanel(panelId, title, landscape = false) {
-  $("#printTitle").textContent = title;
-  $("#printDate").textContent = "تاريخ التصدير: " + fmtDate(new Date().toISOString());
-  $$(".panel").forEach(p => p.classList.remove("print-target"));
-  document.getElementById(panelId).classList.add("print-target");
-  document.body.classList.add("printing");
-
+function setPrintPage(landscape) {
   if (pageStyleEl) pageStyleEl.remove();
   pageStyleEl = null;
   if (landscape) {
@@ -685,63 +743,51 @@ function printPanel(panelId, title, landscape = false) {
     pageStyleEl.textContent = "@page { size: A4 landscape; margin: 10mm; }";
     document.head.appendChild(pageStyleEl);
   }
+}
+
+function printPanel(panelId, title, landscape = false) {
+  $("#printTitle").textContent = title;
+  $("#printDate").textContent = "تاريخ التصدير: " + fmtDate(new Date().toISOString());
+  $$(".panel").forEach(p => p.classList.remove("print-target"));
+  $("#printArea").innerHTML = "";
+  $("#printArea").classList.remove("print-target");
+  document.getElementById(panelId).classList.add("print-target");
+  document.body.classList.add("printing");
+  setPrintPage(landscape);
+  window.print();
+}
+
+function printDialog(dialogId, title, landscape = false) {
+  const dlg = document.getElementById(dialogId);
+  const src = dlg.querySelector(".form") || dlg;
+  const area = $("#printArea");
+  area.innerHTML = src.innerHTML;
+  area.querySelectorAll(".dialog-actions").forEach(el => el.remove());
+  const h2 = area.querySelector("h2");
+  if (h2) h2.remove();
+
+  $("#printTitle").textContent = title;
+  $("#printDate").textContent = "تاريخ التصدير: " + fmtDate(new Date().toISOString());
+  $$(".panel").forEach(p => p.classList.remove("print-target"));
+  area.classList.add("print-target");
+  document.body.classList.add("printing");
+  setPrintPage(landscape);
+  if (dlg.open) dlg.close();
   window.print();
 }
 
 window.addEventListener("afterprint", () => {
   document.body.classList.remove("printing");
   $$(".panel").forEach(p => p.classList.remove("print-target"));
+  const area = $("#printArea");
+  area.classList.remove("print-target");
+  area.innerHTML = "";
   if (pageStyleEl) { pageStyleEl.remove(); pageStyleEl = null; }
 });
 
-function buildExportArea(panelId, title) {
-  const panel = document.getElementById(panelId);
-  const area = $("#exportArea");
-  area.innerHTML =
-    `<div class="exp-head"><h1>${esc(title)}</h1><p>تاريخ التصدير: ${fmtDate(new Date().toISOString())}</p></div>` +
-    panel.innerHTML;
-
-  area.querySelectorAll(".toolbar").forEach(el => el.remove());
-  area.querySelectorAll(".empty").forEach(el => el.remove());
-  area.querySelectorAll(".grid-2, .grid-3").forEach(el => { el.style.display = "block"; });
-  area.querySelectorAll("table").forEach(tbl => {
-    const hasActions = !!tbl.querySelector("td.actions");
-    tbl.querySelectorAll("td.actions").forEach(td => td.remove());
-    const headerRow = tbl.tHead?.rows[0];
-    if (hasActions && headerRow && headerRow.cells.length > 1) headerRow.lastElementChild.remove();
-  });
-  return area;
-}
-
-function exportPDF(panelId, title, filename, orientation = "portrait") {
-  const area = buildExportArea(panelId, title);
-  area.classList.add("export-live");
-  const name = `${filename}_${new Date().toISOString().slice(0, 10)}.pdf`;
-
-  const done = () => {
-    area.classList.remove("export-live");
-    area.innerHTML = "";
-  };
-
-  if (typeof html2pdf !== "undefined") {
-    const task = html2pdf().set({
-      margin: [10, 8],
-      filename: name,
-      image: { type: "jpeg", quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", windowWidth: 1200 },
-      jsPDF: { unit: "mm", format: "a4", orientation }
-    }).from(area).save();
-    if (task && typeof task.then === "function") task.then(done, done);
-    else setTimeout(done, 2000);
-  } else {
-    alert("مكتبة PDF غير متاحة (أنت غير متصل بالإنترنت).\nسيتم فتح نافذة الطباعة — اختر \"حفظ كـ PDF\" من قائمة الطابعات.");
-    done();
-    printPanel(panelId, title);
-  }
-}
-
 $("#printMovBtn").addEventListener("click", () => printPanel("movements", "قائمة حركات المخزون", true));
-$("#pdfMovBtn").addEventListener("click", () => exportPDF("movements", "قائمة حركات المخزون", "حركات_المخزون", "landscape"));
+$("#printItemRepBtn").addEventListener("click", () => printDialog("itemReportDialog", $("#itemReportTitle").textContent));
+$("#printWhRepBtn").addEventListener("click", () => printDialog("whReportDialog", $("#whReportTitle").textContent));
 
 /* ================= إغلاق النوافذ ================= */
 $$("[data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
