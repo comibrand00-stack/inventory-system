@@ -181,6 +181,37 @@ main { flex: 1; padding: 24px 26px; max-width: 1280px; width: 100%; margin: 0 au
 .panel.active { display: block; }
 @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
 
+/* أزرار عائمة (إدخال/صرف/تحويل) — تظهر في تبويب الحركات فقط */
+.fab-group {
+  display: none;
+  position: fixed;
+  left: 22px;
+  bottom: 22px;
+  z-index: 80;
+  flex-direction: column;
+  gap: 10px;
+}
+#movements.active + .fab-group { display: flex; }
+.fab {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 14px 28px -12px rgba(15, 23, 42, .6);
+  transition: transform .12s, filter .15s;
+}
+.fab .ic { width: 22px; height: 22px; }
+.fab:hover { filter: brightness(1.08); }
+.fab:active { transform: scale(.94); }
+.fab-in { background: linear-gradient(135deg, #16a34a, #15803d); }
+.fab-out { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.fab-transfer { background: linear-gradient(135deg, var(--primary), var(--primary-2)); }
+
 /* ================= بطاقات الإحصائيات ================= */
 .stats {
   display: grid;
@@ -653,6 +684,7 @@ body > .export-area.export-live {
   body { background: #fff; display: block; }
   .sidebar, .topbar, .footer, dialog, .lock-screen,
   .toolbar, .export-area, .bottom-nav, .badge { display: none !important; }
+  .fab-group { display: none !important; }
   main { padding: 0; max-width: none; }
   .card {
     box-shadow: none;
@@ -727,6 +759,13 @@ body > .export-area.export-live {
     transition: transform .15s, filter .15s;
   }
   .bottom-nav .bn-ic .ic { width: 21px; height: 21px; }
+  .fab-group {
+    left: 14px;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    gap: 9px;
+  }
+  .fab { width: 48px; height: 48px; }
+  .fab .ic { width: 20px; height: 20px; }
   .bottom-nav .tab:hover { background: transparent; color: #64748b; }
   .bottom-nav .tab:active { transform: scale(.93); }
   .bottom-nav .tab.active {

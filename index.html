@@ -124,9 +124,6 @@
     <!-- الحركات -->
     <section id="movements" class="panel">
       <div class="toolbar">
-        <button class="btn btn-success" id="stockInBtn" title="إدخال مخزون"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg></button>
-        <button class="btn btn-warning" id="stockOutBtn" title="صرف مخزون"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v14"/><path d="m17 12-5-5-5 5"/><path d="M5 3h14"/></svg></button>
-        <button class="btn btn-primary" id="transferBtn" title="تحويل بين المستودعات"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></button>
         <button class="btn btn-ghost" id="printMovBtn">🖨️ طباعة</button>
         <button class="btn btn-pdf" id="pdfMovBtn">📄 PDF</button>
         <div class="spacer"></div>
@@ -151,6 +148,13 @@
         <p id="movementsEmpty" class="empty hidden">لا توجد حركات مطابقة.</p>
       </div>
     </section>
+
+    <!-- أزرار عائمة: إدخال / صرف / تحويل -->
+    <div class="fab-group">
+      <button class="fab fab-in" id="stockInBtn" title="إدخال مخزون" aria-label="إدخال مخزون"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg></button>
+      <button class="fab fab-out" id="stockOutBtn" title="صرف مخزون" aria-label="صرف مخزون"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v14"/><path d="m17 12-5-5-5 5"/><path d="M5 3h14"/></svg></button>
+      <button class="fab fab-transfer" id="transferBtn" title="تحويل بين المستودعات" aria-label="تحويل بين المستودعات"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></button>
+    </div>
 
     <!-- المستودعات -->
     <section id="warehouses" class="panel">
