@@ -19,6 +19,88 @@ const save = () => {
   DB.save("inv_movements", movements);
 };
 
+/* ================= المزامنة السحابية (Supabase) ================= */
+const cloudConfigured = !!(window.SUPABASE_URL && /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(window.SUPABASE_URL));
+const OUTBOX_KEY = "inv_outbox";
+let outbox = DB.load(OUTBOX_KEY, []);
+const saveOutbox = () => DB.save(OUTBOX_KEY, outbox);
+
+const toWhRow = (w) => ({ id: w.id, name: w.name, location: w.location || null, updated_at: new Date().toISOString() });
+const toItemRow = (i) => ({ id: i.id, code: i.code || null, name: i.name || null, unit: i.unit || null, min: Number(i.min) || 0, price: Number(i.price) || 0, stock: i.stock || {}, updated_at: new Date().toISOString() });
+const toMovRow = (m) => ({ id: m.id, type: m.type || null, item_id: m.itemId || null, item_name: m.itemName || null, qty: Number(m.qty) || 0, from_wh: m.from || null, to_wh: m.to || null, reason: m.reason || null, user_name: m.user || null, created_at: m.date || new Date().toISOString() });
+
+const fromWhRow = (r) => ({ id: r.id, name: r.name, location: r.location || "" });
+const fromItemRow = (r) => ({ id: r.id, code: r.code || "", name: r.name || "", unit: r.unit || "", min: Number(r.min) || 0, price: Number(r.price) || 0, stock: r.stock || {} });
+const fromMovRow = (r) => ({ id: r.id, type: r.type, itemId: r.item_id, itemName: r.item_name, qty: Number(r.qty) || 0, from: r.from_wh, to: r.to_wh, reason: r.reason || "", user: r.user_name || "", date: r.created_at });
+
+function enqueue(...ops) {
+  if (!cloudConfigured) return;
+  outbox.push(...ops);
+  saveOutbox();
+  updateCloudStatus();
+  flushOutbox();
+}
+
+let flushing = false;
+async function flushOutbox() {
+  if (flushing || !outbox.length) return;
+  if (!window.Cloud || !Cloud.ready || !Cloud.user) return;
+  flushing = true;
+  try {
+    while (outbox.length) {
+      await Cloud.apply(outbox[0]);
+      outbox.shift();
+      saveOutbox();
+    }
+  } catch (_) {
+    /* نحتفظ بالعمليات في الطابور ونعيد المحاولة لاحقاً */
+  } finally {
+    flushing = false;
+    updateCloudStatus();
+  }
+}
+
+function upsertLocalRow(table, r) {
+  if (table === "warehouses") {
+    const idx = warehouses.findIndex(x => x.id === r.id);
+    if (idx >= 0) warehouses[idx] = fromWhRow(r); else warehouses.push(fromWhRow(r));
+  } else if (table === "items") {
+    const idx = items.findIndex(x => x.id === r.id);
+    if (idx >= 0) items[idx] = fromItemRow(r); else items.push(fromItemRow(r));
+  } else if (table === "movements") {
+    const mapped = fromMovRow(r);
+    const idx = movements.findIndex(x => x.id === r.id);
+    if (idx >= 0) movements[idx] = mapped; else movements.unshift(mapped);
+    movements.sort((a, b) => new Date(b.date) - new Date(a.date));
+  }
+}
+
+function removeLocalRow(table, id) {
+  if (table === "warehouses") warehouses = warehouses.filter(x => x.id !== id);
+  else if (table === "items") items = items.filter(x => x.id !== id);
+  else if (table === "movements") movements = movements.filter(x => x.id !== id);
+}
+
+function onRemoteChange(table, payload) {
+  if (payload.eventType === "DELETE") removeLocalRow(table, payload.old && payload.old.id);
+  else upsertLocalRow(table, payload.new);
+  save();
+  renderAll();
+  updateCloudStatus();
+}
+
+function updateCloudStatus() {
+  const btn = $("#cloudBtn");
+  if (btn) btn.classList.toggle("hidden", !cloudConfigured);
+  const dot = $("#cloudDot");
+  if (!dot) return;
+  if (!cloudConfigured) { dot.classList.add("hidden"); return; }
+  dot.classList.remove("hidden");
+  const online = navigator.onLine && window.Cloud && Cloud.ready && Cloud.user;
+  dot.classList.toggle("on", !!online && outbox.length === 0);
+  dot.classList.toggle("pending", outbox.length > 0);
+}
+
 /* ================= أدوات ================= */
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
@@ -128,6 +210,8 @@ $("#whForm").addEventListener("submit", (e) => {
     warehouses.push({ id: uid(), name, location });
   }
   save();
+  const whRow = warehouses.find(w => w.name === name && (id ? w.id === id : true));
+  if (whRow) enqueue({ op: "upsert", table: "warehouses", row: toWhRow(whRow) });
   $("#whDialog").close();
   renderAll();
 });
@@ -145,9 +229,14 @@ function deleteWh(id) {
     return;
   }
   if (!confirmBox(`حذف المستودع "${wh.name}"؟`)) return;
+  const affected = items.filter(i => i.stock && id in i.stock);
   warehouses = warehouses.filter(w => w.id !== id);
   items.forEach(i => { if (i.stock) delete i.stock[id]; });
   save();
+  enqueue(
+    { op: "delete", table: "warehouses", id },
+    ...affected.map(i => ({ op: "upsert", table: "items", row: toItemRow(i) }))
+  );
   renderAll();
 }
 
@@ -199,22 +288,30 @@ $("#itemForm").addEventListener("submit", (e) => {
   const dup = items.find(i => i.code === code && i.id !== id);
   if (dup) { alert("رمز الصنف مستخدم مسبقاً لصنف آخر."); return; }
 
+  let savedItem = null, openMov = null;
   if (id) {
     const it = findItem(id);
-    if (it) Object.assign(it, data);
+    if (it) { Object.assign(it, data); savedItem = it; }
   } else {
     const whId = $("#itemWh").value || warehouses[0].id;
     const qty = Math.max(0, parseInt($("#itemQty").value) || 0);
     const item = { id: uid(), ...data, stock: { [whId]: qty }, createdAt: new Date().toISOString() };
     items.push(item);
+    savedItem = item;
     if (qty > 0) {
-      movements.unshift({
+      openMov = {
         id: uid(), type: "in", itemId: item.id, itemName: item.name,
         qty, to: whId, reason: "رصيد افتتاحي", user: "المدير", date: new Date().toISOString()
-      });
+      };
+      movements.unshift(openMov);
     }
   }
   save();
+  if (savedItem) {
+    const ops = [{ op: "upsert", table: "items", row: toItemRow(savedItem) }];
+    if (openMov) ops.push({ op: "upsert", table: "movements", row: toMovRow(openMov) });
+    enqueue(...ops);
+  }
   $("#itemDialog").close();
   renderAll();
 });
@@ -223,9 +320,14 @@ function deleteItem(id) {
   const it = findItem(id);
   if (!it) return;
   if (!confirmBox(`حذف الصنف "${it.name}"؟ سيتم حذف حركاته أيضاً.`)) return;
+  const movIds = movements.filter(m => m.itemId === id).map(m => m.id);
   items = items.filter(i => i.id !== id);
   movements = movements.filter(m => m.itemId !== id);
   save();
+  enqueue(
+    { op: "delete", table: "items", id },
+    ...movIds.map(mid => ({ op: "delete", table: "movements", id: mid }))
+  );
   renderAll();
 }
 
@@ -368,15 +470,20 @@ $("#movementForm").addEventListener("submit", (e) => {
     it.stock[toId] = qtyIn(it, toId) + qty;
   }
 
-  movements.unshift({
+  const mov = {
     id: uid(), type, itemId: it.id, itemName: it.name, qty,
     from: type === "in" ? null : fromId,
     to: type === "out" ? null : toId,
     reason: $("#movementReason").value.trim(),
     user: $("#movementUser").value.trim() || "—",
     date: new Date().toISOString()
-  });
+  };
+  movements.unshift(mov);
   save();
+  enqueue(
+    { op: "upsert", table: "items", row: toItemRow(it) },
+    { op: "upsert", table: "movements", row: toMovRow(mov) }
+  );
   $("#movementDialog").close();
   renderAll();
 });
@@ -398,6 +505,9 @@ function deleteMovement(id) {
   }
   movements = movements.filter(x => x.id !== id);
   save();
+  const ops = [{ op: "delete", table: "movements", id }];
+  if (it) ops.push({ op: "upsert", table: "items", row: toItemRow(it) });
+  enqueue(...ops);
   renderAll();
 }
 
@@ -793,7 +903,7 @@ $("#printWhRepBtn").addEventListener("click", () => printDialog("whReportDialog"
 $$("[data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
 
 /* ================= البيانات الأولية ================= */
-if (items.length === 0 && warehouses.length === 0) {
+if (!cloudConfigured && items.length === 0 && warehouses.length === 0) {
   const now = Date.now();
   const w1 = uid(), w2 = uid(), w3 = uid();
   warehouses = [
@@ -991,5 +1101,91 @@ $("#forgotPin").addEventListener("click", () => {
 
 $("#changePinBtn").addEventListener("click", () => showLock("change"));
 
-if (localStorage.getItem(PIN_KEY)) showLock("unlock");
-else showLock("create");
+/* ================= الدخول إلى التطبيق (محلي أو سحابي) ================= */
+function showCloudLock() { $("#cloudLock").classList.remove("hidden"); }
+function hideCloudLock() { $("#cloudLock").classList.add("hidden"); }
+
+let cloudStarted = false;
+async function onSignedIn() {
+  hideCloudLock();
+  hideLock();
+  if (cloudStarted) { updateCloudStatus(); return; }
+  cloudStarted = true;
+  try {
+    const remote = await Cloud.loadAll();
+    const remoteEmpty = remote.warehouses.length === 0 && remote.items.length === 0 && remote.movements.length === 0;
+    const localHas = warehouses.length || items.length || movements.length;
+    if (remoteEmpty && localHas) {
+      warehouses.forEach(w => outbox.push({ op: "upsert", table: "warehouses", row: toWhRow(w) }));
+      items.forEach(i => outbox.push({ op: "upsert", table: "items", row: toItemRow(i) }));
+      movements.forEach(m => outbox.push({ op: "upsert", table: "movements", row: toMovRow(m) }));
+      saveOutbox();
+    } else if (!remoteEmpty) {
+      warehouses = remote.warehouses.map(fromWhRow);
+      items = remote.items.map(fromItemRow);
+      movements = remote.movements.map(fromMovRow).sort((a, b) => new Date(b.date) - new Date(a.date));
+      save();
+      renderAll();
+    }
+    Cloud.subscribe(onRemoteChange);
+    flushOutbox();
+  } catch (e) { console.warn("تعذّر تحميل البيانات السحابية", e); }
+  updateCloudStatus();
+}
+
+function startCloudSync() {
+  if (!window.Cloud || !Cloud.ready) return;
+  if (!Cloud._wired) { Cloud._wired = true; Cloud.onAuth(u => { if (u) onSignedIn(); else showCloudLock(); }); }
+  if (Cloud.user) onSignedIn(); else showCloudLock();
+}
+
+window.addEventListener("online", () => { flushOutbox(); updateCloudStatus(); });
+window.addEventListener("offline", updateCloudStatus);
+window.addEventListener("cloud-ready", startCloudSync);
+
+$("#cloudLoginForm") && $("#cloudLoginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = $("#cloudLoginMsg");
+  const btn = $("#cloudLoginBtn");
+  msg.textContent = ""; msg.className = "lock-msg";
+  if (!window.Cloud || !Cloud.ready) {
+    msg.textContent = "تعذّر الاتصال بالسحابة — تحقق من الإنترنت.";
+    msg.className = "lock-msg err";
+    return;
+  }
+  btn.disabled = true;
+  const old = btn.textContent;
+  btn.textContent = "جارٍ الدخول...";
+  try {
+    await Cloud.signIn($("#cloudEmail").value.trim(), $("#cloudPass").value);
+    msg.textContent = "تم الدخول ✓"; msg.className = "lock-msg ok";
+  } catch (err) {
+    msg.textContent = "بيانات الدخول غير صحيحة ❌"; msg.className = "lock-msg err";
+  } finally {
+    btn.disabled = false; btn.textContent = old;
+  }
+});
+
+$("#cloudLocalBtn") && $("#cloudLocalBtn").addEventListener("click", () => { hideCloudLock(); hideLock(); });
+
+$("#cloudBtn") && $("#cloudBtn").addEventListener("click", async () => {
+  if (!cloudConfigured) return;
+  if (window.Cloud && Cloud.user) {
+    if (!confirm("تسجيل الخروج من الحساب السحابي؟\n(ستبقى بياناتك محفوظة محلياً)")) return;
+    await Cloud.signOut();
+    showCloudLock();
+  } else {
+    showCloudLock();
+  }
+});
+
+if (cloudConfigured) {
+  hideLock();
+  showCloudLock();
+  if ($("#changePinBtn")) $("#changePinBtn").classList.add("hidden");
+  updateCloudStatus();
+  startCloudSync();
+} else {
+  if (localStorage.getItem(PIN_KEY)) showLock("unlock");
+  else showLock("create");
+}

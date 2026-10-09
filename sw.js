@@ -1,11 +1,14 @@
 "use strict";
 
-const CACHE = "inventory-pwa-v2";
+const CACHE = "inventory-pwa-v3";
 const ASSETS = [
   "./",
   "./index.html",
   "./style.css",
   "./app.js",
+  "./config.js",
+  "./cloud.js",
+  "./vendor/supabase.js",
   "./manifest.json",
   "./icon.svg",
   "./icons/icon-180.png",

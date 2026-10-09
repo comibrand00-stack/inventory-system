@@ -770,6 +770,22 @@ dialog.dlg-lg { width: min(860px, 94vw); }
 }
 .lock-link:hover { color: var(--primary-2); }
 
+/* الدخول السحابي */
+.cloud-fields { display: flex; flex-direction: column; gap: 12px; margin: 14px 0 18px; text-align: right; }
+.cloud-fields label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.cloud-fields input { width: 100%; }
+.cloud-login-btn { width: 100%; justify-content: center; }
+.cloud-dot {
+  position: absolute;
+  bottom: -3px; right: -3px;
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: #94a3b8;
+  border: 2px solid #fff;
+}
+.cloud-dot.on { background: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.2); }
+.cloud-dot.pending { background: #d97706; box-shadow: 0 0 0 3px rgba(217,119,6,.2); }
+
 .shake { animation: shake .4s ease; }
 @keyframes shake {
   0%, 100% { transform: translateX(0); }

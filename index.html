@@ -49,6 +49,10 @@
       <p class="page-sub">نظرة عامة على المخزون والمستودعات</p>
     </div>
     <div class="top-actions">
+      <button id="cloudBtn" class="icon-btn hidden" title="السحابة / مزامنة" aria-label="السحابة">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+        <span id="cloudDot" class="cloud-dot hidden"></span>
+      </button>
       <button id="changePinBtn" class="icon-btn" title="تغيير الرقم السري" aria-label="تغيير الرقم السري">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
       </button>
@@ -229,6 +233,25 @@
   </div>
 </div>
 
+<!-- شاشة الدخول السحابي -->
+<div id="cloudLock" class="lock-screen hidden">
+  <form class="lock-card" id="cloudLoginForm">
+    <div class="lock-logo">☁️</div>
+    <h2>تسجيل الدخول</h2>
+    <p id="cloudLoginMsg" class="lock-msg">&nbsp;</p>
+    <div class="cloud-fields">
+      <label>البريد الإلكتروني
+        <input type="email" id="cloudEmail" required autocomplete="username" placeholder="team@example.com">
+      </label>
+      <label>كلمة المرور
+        <input type="password" id="cloudPass" required autocomplete="current-password" placeholder="••••••••">
+      </label>
+    </div>
+    <button type="submit" class="btn btn-primary cloud-login-btn" id="cloudLoginBtn">دخول</button>
+    <button type="button" id="cloudLocalBtn" class="lock-link">متابعة بدون مزامنة (وضع محلي)</button>
+  </form>
+</div>
+
 <!-- نافذة: صنف -->
 <dialog id="itemDialog">
   <form method="dialog" id="itemForm" class="form">
@@ -348,7 +371,10 @@
   </div>
 </dialog>
 
+<script src="config.js"></script>
 <script src="app.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="cloud.js"></script>
 <script>
   if ("serviceWorker" in navigator &&
       (location.protocol === "https:" || location.protocol === "http:")) {
