@@ -23,6 +23,18 @@ const save = () => {
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
+/* ================= أيقونات SVG ================= */
+const svgIc = (paths) =>
+  `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+
+const IC = {
+  edit: svgIc(`<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>`),
+  in: svgIc(`<path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/>`),
+  out: svgIc(`<path d="M12 7v14"/><path d="m17 12-5-5-5 5"/><path d="M5 3h14"/>`),
+  transfer: svgIc(`<path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>`),
+  del: svgIc(`<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/>`)
+};
+
 const fmtNum = (n) => Number(n).toLocaleString("ar-EG-u-nu-latn");
 const fmtMoney = (n) => Number(n).toLocaleString("ar-EG-u-nu-latn", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ر.س";
 const fmtDate = (iso) => {
@@ -437,11 +449,11 @@ function renderItems() {
       <td>${fmtMoney(i.price)}</td>
       <td>${fmtMoney(shownQty * i.price)}</td>
       <td class="actions">
-        <button class="btn btn-primary btn-sm" title="تعديل" onclick="editItem('${i.id}')">✏️</button>
-        <button class="btn btn-success btn-sm" title="إدخال" onclick="openMovementDialog('in','${i.id}')">⬇️</button>
-        <button class="btn btn-warning btn-sm" title="صرف" onclick="openMovementDialog('out','${i.id}')">⬆️</button>
-        <button class="btn btn-ghost btn-sm" title="تحويل" onclick="openMovementDialog('transfer','${i.id}')">🔁</button>
-        <button class="btn btn-danger btn-sm" title="حذف" onclick="deleteItem('${i.id}')">🗑️</button>
+        <button class="btn btn-primary btn-sm ibtn" title="تعديل" onclick="editItem('${i.id}')">${IC.edit}</button>
+        <button class="btn btn-success btn-sm ibtn" title="إدخال" onclick="openMovementDialog('in','${i.id}')">${IC.in}</button>
+        <button class="btn btn-warning btn-sm ibtn" title="صرف" onclick="openMovementDialog('out','${i.id}')">${IC.out}</button>
+        <button class="btn btn-ghost btn-sm ibtn" title="تحويل" onclick="openMovementDialog('transfer','${i.id}')">${IC.transfer}</button>
+        <button class="btn btn-danger btn-sm ibtn" title="حذف" onclick="deleteItem('${i.id}')">${IC.del}</button>
       </td>
     </tr>`;
   }).join("");
@@ -480,7 +492,7 @@ function renderMovements() {
       <td>${route}</td>
       <td>${esc(m.reason)}</td>
       <td>${esc(m.user)}</td>
-      <td class="actions"><button class="btn btn-danger btn-sm" title="حذف" onclick="deleteMovement('${m.id}')">🗑️</button></td>
+      <td class="actions"><button class="btn btn-danger btn-sm ibtn" title="حذف" onclick="deleteMovement('${m.id}')">${IC.del}</button></td>
     </tr>`;
   }).join("");
 
@@ -500,8 +512,8 @@ function renderWarehouses() {
       <td>${fmtNum(qty)}</td>
       <td>${fmtMoney(value)}</td>
       <td class="actions">
-        <button class="btn btn-primary btn-sm" title="تعديل" onclick="openWhDialog(warehouses.find(x=>x.id==='${w.id}'))">✏️</button>
-        <button class="btn btn-danger btn-sm" title="حذف" onclick="deleteWh('${w.id}')">🗑️</button>
+        <button class="btn btn-primary btn-sm ibtn" title="تعديل" onclick="openWhDialog(warehouses.find(x=>x.id==='${w.id}'))">${IC.edit}</button>
+        <button class="btn btn-danger btn-sm ibtn" title="حذف" onclick="deleteWh('${w.id}')">${IC.del}</button>
       </td>
     </tr>`;
   }).join("");
