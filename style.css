@@ -911,4 +911,9 @@ dialog.dlg-lg { width: min(860px, 94vw); }
   main { padding: 16px; }
   .footer { margin-bottom: calc(86px + env(safe-area-inset-bottom)); }
   .topbar { padding: 13px 16px; }
+
+  .table-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table-card .table { min-width: 880px; }
+  #whTable { min-width: 600px; }
+  .table .actions { flex-wrap: wrap; gap: 4px; }
 }
